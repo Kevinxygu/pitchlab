@@ -18,7 +18,7 @@ class CohereClient:
         except Exception as e:
             print(f"⚠️ ClientV2 failed, trying Client v1: {e}")
             try:
-                # Fallback to v1 API
+                # FallbackNo persona data found to v1 API
                 self.client = cohere.Client(self.api_key)
                 self.use_v2 = False
                 print(f"✅ Cohere Client (v1) initialized")
