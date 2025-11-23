@@ -13,7 +13,7 @@ export default function CallPage() {
     // State
     const [isConnected, setIsConnected] = useState(false)
     const [isListening, setIsListening] = useState(false)
-    const [isMuted, setIsMuted] = useState(false)
+    const [isMuted, setIsMuted] = useState(true)
     const [isVideoOn, setIsVideoOn] = useState(true)
     const [callDuration, setCallDuration] = useState(0)
     const [messages, setMessages] = useState<Message[]>([])
@@ -223,8 +223,9 @@ export default function CallPage() {
         }
     }
 
-    // Start voice recognition
+    // Start voice recognition (push-to-talk)
     const startListening = () => {
+        if (isListening) return
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             alert('Speech recognition not supported in this browser. Please use Chrome or Edge.')
             return
@@ -233,12 +234,13 @@ export default function CallPage() {
         const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
         const recognition = new SpeechRecognition()
 
-        recognition.continuous = true
+        recognition.continuous = false
         recognition.interimResults = false
         recognition.lang = 'en-US'
 
         recognition.onstart = () => {
             setIsListening(true)
+            setIsMuted(false)
             console.log('🎤 Voice recognition started')
         }
 
@@ -258,12 +260,14 @@ export default function CallPage() {
         recognition.onerror = (event: any) => {
             console.error('❌ Speech recognition error:', event.error)
             setError(`Speech recognition error: ${event.error}`)
+            setIsListening(false)
+            setIsMuted(true)
         }
 
         recognition.onend = () => {
-            if (isListening) {
-                recognition.start() // Auto-restart
-            }
+            setIsListening(false)
+            setIsMuted(true)
+            recognitionRef.current = null
         }
 
         recognition.start()
@@ -274,20 +278,14 @@ export default function CallPage() {
     const stopListening = () => {
         if (recognitionRef.current) {
             recognitionRef.current.stop()
+            recognitionRef.current = null
             setIsListening(false)
-        }
-    }
-
-    // Toggle microphone
-    const toggleMic = () => {
-        if (isMuted) {
-            startListening()
-            setIsMuted(false)
-        } else {
-            stopListening()
             setIsMuted(true)
         }
     }
+
+    const handlePushToTalkStart = () => startListening()
+    const handlePushToTalkEnd = () => stopListening()
 
     // End call
     const handleEndCall = () => {
@@ -451,14 +449,20 @@ export default function CallPage() {
                 </button>
 
                 <button
-                    onClick={toggleMic}
+                    onMouseDown={handlePushToTalkStart}
+                    onMouseUp={handlePushToTalkEnd}
+                    onMouseLeave={handlePushToTalkEnd}
+                    onTouchStart={handlePushToTalkStart}
+                    onTouchEnd={handlePushToTalkEnd}
+                    onTouchCancel={handlePushToTalkEnd}
                     disabled={!isConnected}
-                    className={`p-4 rounded-lg transition-colors ${!isMuted
+                    className={`px-6 py-4 rounded-lg transition-colors flex items-center gap-2 ${isListening
                         ? 'bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-[#0F001E]'
                         : 'bg-[#DE0037] hover:bg-[#DE0037]/90 text-[#FFFFFF]'
                         } disabled:opacity-50`}
                 >
-                    {!isMuted ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+                    {isListening ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+                    <span className="font-medium">{isListening ? 'Listening...' : 'Hold to Talk'}</span>
                 </button>
 
                 <button
@@ -469,18 +473,6 @@ export default function CallPage() {
                     <span className="text-[#FFFFFF] font-medium">End Call</span>
                 </button>
             </div>
-
-            {/* Quick start button */}
-            {!isListening && isConnected && (
-                <div className="text-center mt-4">
-                    <button
-                        onClick={startListening}
-                        className="px-6 py-3 bg-[#FFFFFF] hover:bg-[#FFFFFF]/90 text-[#0F001E] rounded-lg font-medium transition-colors"
-                    >
-                        Click to Start Talking
-                    </button>
-                </div>
-            )}
 
             {/* Debug info */}
             <div className="text-center mt-2">
