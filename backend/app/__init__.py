@@ -6,8 +6,11 @@ import os
 
 load_dotenv()
 
+# Get allowed origins for CORS
+allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+
 socketio = SocketIO(
-    cors_allowed_origins="*",  # Allow all origins in development
+    cors_allowed_origins=allowed_origins,
     async_mode='threading',
     logger=True,
     engineio_logger=True
@@ -17,11 +20,15 @@ def create_app():
     app = Flask(__name__)
     
     # Configure CORS for all routes
+    # Get allowed origins from environment or use defaults
+    allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+    
     CORS(app, resources={
         r"/*": {
-            "origins": "*",
+            "origins": allowed_origins,
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
+            "allow_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": True
         }
     })
     

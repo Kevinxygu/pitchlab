@@ -16,4 +16,5 @@ aiohttp==3.9.0
 flask-socketio
 python-socketio
 python-engineio
+gevent-websocket==0.10.1
 
