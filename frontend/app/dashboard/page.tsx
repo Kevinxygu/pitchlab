@@ -35,16 +35,17 @@ export default function DashboardPage() {
   return (
     <main className="auth-shell">
       <div className="card glass dashboard-card">
-        <div>
-          <div className="pill">Signed in</div>
-          <h1 className="hero-title">Dashboard</h1>
-          <p className="hero-subtitle">
-            You are authenticated via Auth0. Your profile is ready below.
-          </p>
-          <ProfileCard />
-          <div className="cta-row">
-            <LogoutButton />
-          </div>
+        <div className="pill">Signed in</div>
+        <h1 className="hero-title">Dashboard</h1>
+        <p className="hero-subtitle">
+          You are authenticated via Auth0. Your profile is ready below.
+        </p>
+        <ProfileCard />
+        <div className="cta-row">
+          <button className="button" onClick={() => router.push('/test-call')}>
+            Go to Test Call
+          </button>
+          <LogoutButton />
         </div>
 
         <CallSettings />
