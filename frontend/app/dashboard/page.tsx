@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth0 } from '@auth0/auth0-react'
 import ProfileCard from '@/components/auth/ProfileCard'
 import LogoutButton from '@/components/auth/LogoutButton'
+import CallSettings from './call_settings'
 
 export default function DashboardPage() {
   const { isAuthenticated, isLoading } = useAuth0()
@@ -34,15 +35,19 @@ export default function DashboardPage() {
   return (
     <main className="auth-shell">
       <div className="card glass dashboard-card">
-        <div className="pill">Signed in</div>
-        <h1 className="hero-title">Dashboard</h1>
-        <p className="hero-subtitle">
-          You are authenticated via Auth0. Your profile is ready below.
-        </p>
-        <ProfileCard />
-        <div className="cta-row">
-          <LogoutButton />
+        <div>
+          <div className="pill">Signed in</div>
+          <h1 className="hero-title">Dashboard</h1>
+          <p className="hero-subtitle">
+            You are authenticated via Auth0. Your profile is ready below.
+          </p>
+          <ProfileCard />
+          <div className="cta-row">
+            <LogoutButton />
+          </div>
         </div>
+
+        <CallSettings />
       </div>
     </main>
   )
