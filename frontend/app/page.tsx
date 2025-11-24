@@ -116,6 +116,14 @@ export default function Home() {
             >
               Sign In
             </button>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdsExDvTUdw4FFoDybJBJoMUPOUmOlAZ07qKWfBC4FDicibsg/viewform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="landing-btn landing-btn-secondary landing-btn-large"
+            >
+              Join Waitlist
+            </a>
           </div>
         </div>
       </main>
