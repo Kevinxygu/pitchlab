@@ -74,7 +74,7 @@ export default function Home() {
           </div>
 
           <div className="landing-nav-actions">
-            {/* <button
+            <button
               className="landing-btn landing-btn-secondary"
               onClick={handleSignIn}
             >
@@ -85,7 +85,7 @@ export default function Home() {
               onClick={handleCreateAccount}
             >
               Try It Now
-            </button> */}
+            </button>
           </div>
         </div>
       </nav>
@@ -104,7 +104,7 @@ export default function Home() {
           </p>
 
           <div className="landing-hero-actions">
-            {/* <button
+            <button
               className="landing-btn landing-btn-primary landing-btn-large"
               onClick={handleCreateAccount}
             >
@@ -115,7 +115,7 @@ export default function Home() {
               onClick={handleSignIn}
             >
               Sign In
-            </button> */}
+            </button>
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSdsExDvTUdw4FFoDybJBJoMUPOUmOlAZ07qKWfBC4FDicibsg/viewform"
               target="_blank"
