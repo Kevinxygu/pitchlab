@@ -36,6 +36,7 @@ function CallContent() {
     const [sessionId, setSessionId] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [connectionStatus, setConnectionStatus] = useState<string>('Initializing...')
+    const [audioContextReady, setAudioContextReady] = useState(false)
 
     // Refs
     const socketRef = useRef<Socket | null>(null)
@@ -160,6 +161,26 @@ function CallContent() {
         return () => clearInterval(interval)
     }, [isConnected])
 
+    // ✨ NEW: Initialize AudioContext on first user interaction
+    useEffect(() => {
+        if (isListening && !audioContextRef.current) {
+            initAudioContext()
+        }
+    }, [isListening])
+
+    // ✨ NEW: Function to initialize AudioContext with user interaction
+    const initAudioContext = () => {
+        try {
+            if (!audioContextRef.current) {
+                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+                setAudioContextReady(true)
+                console.log('✅ AudioContext initialized')
+            }
+        } catch (error) {
+            console.error('❌ Failed to initialize AudioContext:', error)
+        }
+    }
+
     // Connect WebSocket
     const connectWebSocket = (session_id: string) => {
         if (socketRef.current?.connected) {
@@ -234,12 +255,21 @@ function CallContent() {
         socketRef.current = socket
     }
 
-    // Play audio from base64
+    // ✨ UPDATED: Enhanced audio playback with better HTTPS support
     const playAudio = async (audioBase64: string) => {
         try {
-            // Create audio context if needed
+            console.log('🔊 Starting audio playback...')
+
+            // ✨ NEW: Ensure AudioContext exists and is running
             if (!audioContextRef.current) {
-                audioContextRef.current = new AudioContext()
+                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+                setAudioContextReady(true)
+            }
+
+            // ✨ NEW: Resume AudioContext if suspended (required for HTTPS)
+            if (audioContextRef.current.state === 'suspended') {
+                await audioContextRef.current.resume()
+                console.log('✅ AudioContext resumed')
             }
 
             // Decode base64 to array buffer
@@ -250,14 +280,53 @@ function CallContent() {
             const url = URL.createObjectURL(blob)
             const audio = new Audio(url)
 
-            await audio.play()
+            // ✨ NEW: Set volume explicitly
+            audio.volume = 1.0
+
+            // ✨ NEW: Wait for audio to be ready before playing
+            await new Promise((resolve, reject) => {
+                audio.oncanplaythrough = resolve
+                audio.onerror = reject
+                audio.load()
+            })
+
+            // ✨ NEW: Explicitly play with error handling
+            const playPromise = audio.play()
+
+            if (playPromise !== undefined) {
+                await playPromise
+                console.log('✅ Audio playing successfully')
+            }
 
             // Cleanup
             audio.onended = () => {
                 URL.revokeObjectURL(url)
+                console.log('✅ Audio finished and cleaned up')
             }
         } catch (error) {
             console.error('❌ Error playing audio:', error)
+            // ✨ NEW: More detailed error reporting
+            setError(`Audio playback failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please check browser permissions.`)
+
+            // ✨ NEW: Try fallback method with AudioContext
+            try {
+                console.log('🔄 Attempting fallback audio playback...')
+                if (!audioContextRef.current) {
+                    audioContextRef.current = new AudioContext()
+                }
+
+                const audioData = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0))
+                const audioBuffer = await audioContextRef.current.decodeAudioData(audioData.buffer)
+
+                const source = audioContextRef.current.createBufferSource()
+                source.buffer = audioBuffer
+                source.connect(audioContextRef.current.destination)
+                source.start(0)
+
+                console.log('✅ Audio playing via AudioContext fallback')
+            } catch (fallbackError) {
+                console.error('❌ Fallback audio method also failed:', fallbackError)
+            }
         }
     }
 
@@ -267,6 +336,11 @@ function CallContent() {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             alert('Speech recognition not supported in this browser. Please use Chrome or Edge.')
             return
+        }
+
+        // ✨ NEW: Initialize AudioContext on first interaction
+        if (!audioContextRef.current) {
+            initAudioContext()
         }
 
         const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
@@ -395,6 +469,16 @@ function CallContent() {
                         <p className="text-[#FFFFFF] font-medium">Connection Error</p>
                         <p className="text-[#FFFFFF]/80 text-sm">{error}</p>
                     </div>
+                </div>
+            )}
+
+            {/* ✨ NEW: Audio status indicator */}
+            {!audioContextReady && isConnected && (
+                <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500 rounded-lg flex items-center gap-3">
+                    <AlertCircle className="w-4 h-4 text-yellow-500" />
+                    <p className="text-yellow-500 text-sm">
+                        Audio will initialize on first interaction (click "Hold to Talk")
+                    </p>
                 </div>
             )}
 
@@ -545,6 +629,9 @@ function CallContent() {
                     Backend: {process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080'}
                     {' • '}
                     Session: {sessionId?.slice(0, 8) || 'None'}
+                    {/* ✨ NEW: Audio status in debug info */}
+                    {' • '}
+                    Audio: {audioContextReady ? '✅ Ready' : '⏳ Waiting'}
                 </p>
             </div>
         </div>

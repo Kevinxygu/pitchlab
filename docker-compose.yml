@@ -25,6 +25,7 @@ services:
       - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-21m00Tcm4TlvDq8ikWAM}
       - COHERE_API_KEY=${COHERE_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ALLOWED_ORIGINS=http://localhost:3000
     
     # Mount code for hot reload
     volumes:
