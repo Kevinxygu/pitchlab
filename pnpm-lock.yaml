@@ -12,8 +12,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       next:
-        specifier: link:@vercel/analytics/next
-        version: link:@vercel/analytics/next
+        specifier: 14.2.16
+        version: 14.2.16
 
 packages:
 
