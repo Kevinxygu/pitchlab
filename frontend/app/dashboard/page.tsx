@@ -6,10 +6,17 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { Phone, Sparkles, LogOut } from 'lucide-react'
 
 const personalityOptions = [
-  { value: 'enthusiastic', label: 'Enthusiastic Hype' },
-  { value: 'analytical', label: 'Analytical Strategist' },
-  { value: 'concise', label: 'Concise Closer' },
-  { value: 'friendly', label: 'Friendly Partner' },
+  { value: 'enthusiastic', label: 'Enthusiastic' },
+  { value: 'analytical', label: 'Analytical' },
+  { value: 'concise', label: 'Concise' },
+  { value: 'friendly', label: 'Friendly' },
+  { value: 'nice', label: 'Nice' },
+  { value: 'angry', label: 'Angry' },
+  { value: 'skeptical', label: 'Skeptical' },
+  { value: 'confused', label: 'Confused' },
+  { value: 'random', label: 'Random' },
+  { value: 'distracted', label: 'Distracted' },
+  { value: 'indecisive', label: 'Indecisive' },
 ]
 
 export default function DashboardPage() {
@@ -18,6 +25,8 @@ export default function DashboardPage() {
 
   const [company, setCompany] = useState('')
   const [personality, setPersonality] = useState(personalityOptions[0].value)
+  const [role, setRole] = useState('')
+  const [objective, setObjective] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -27,12 +36,19 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, isLoading, router])
 
-  const buildPersonaFromProfile = (companyName: string, profile: any, personalityValue: string) => {
+  const buildPersonaFromProfile = (
+    companyName: string,
+    profile: any,
+    personalityValue: string,
+    roleValue: string,
+    objectiveValue: string
+  ) => {
     const primaryContact = profile?.key_personnel?.[0] || {}
 
     return {
       name: primaryContact.name || companyName,
-      role: primaryContact.title || 'Decision Maker',
+      role: roleValue || primaryContact.title || 'Decision Maker',
+      objective: objectiveValue || 'Drive the conversation forward',
       company: profile?.entity_name || companyName,
       difficulty: 'medium',
       background: profile?.overview || '',
@@ -68,7 +84,13 @@ export default function DashboardPage() {
       setError('')
 
       const companyData = await get_company_info(company)
-      const personaPayload = buildPersonaFromProfile(company, companyData?.profile, personality)
+      const personaPayload = buildPersonaFromProfile(
+        company,
+        companyData?.profile,
+        personality,
+        role,
+        objective
+      )
       const personaString = JSON.stringify(personaPayload)
 
       sessionStorage.setItem('persona', personaString)
@@ -191,6 +213,35 @@ export default function DashboardPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Error Message */}
+            {/* Role Input */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Role
+              </label>
+              <input
+                type="text"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                placeholder="e.g., Account Executive"
+                className="w-full px-4 py-3 bg-[#0F001E] border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#DE0037] transition-colors"
+              />
+            </div>
+
+            {/* Objective Input */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Call Objective
+              </label>
+              <textarea
+                value={objective}
+                onChange={(e) => setObjective(e.target.value)}
+                placeholder="e.g., Secure a follow-up meeting to discuss tailored solutions"
+                rows={3}
+                className="w-full px-4 py-3 bg-[#0F001E] border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-[#DE0037] transition-colors"
+              />
             </div>
 
             {/* Error Message */}

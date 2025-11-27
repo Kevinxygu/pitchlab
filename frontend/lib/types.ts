@@ -1,6 +1,7 @@
 export interface Persona {
     name: string
     role: string
+    objective?: string
     company: string
     difficulty: 'easy' | 'medium' | 'hard'
     background?: string
